@@ -44,4 +44,8 @@ public class DataSourceMap {
         }
         return map;
     }
+
+    public int size() {
+        return map.size();
+    }
 }

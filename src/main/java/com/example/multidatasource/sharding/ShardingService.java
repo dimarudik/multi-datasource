@@ -14,23 +14,25 @@ public class ShardingService {
     private final DataSourceContextHolder dataSourceContextHolder;
     private final DataSourceMap dataSourceMap;
 
-    public void setDataSourceContextByShardId(int value) {
-        switch (value) {
+    public void setDataSourceContextByShardId(int shardId) {
+        switch (shardId) {
             case 1:
                 dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A);
-                log.info("CLIENT_A");
                 break;
             case 2:
                 dataSourceContextHolder.setContext(DataSourceContext.CLIENT_B);
-                log.info("CLIENT_B");
                 break;
             default:
                 throw new RuntimeException("Unknown ShardId");
         }
+        log.info("Current Context is: {}", dataSourceContextHolder.getContext());
     }
 
     public void setDataSourceContextByValue(int value) {
-        switch (getShardId(dataSourceMap.getMap().size(), value)) {
+//        log.info("DataSourceMap size : {}", dataSourceMap.size());
+        log.info("value {}", value);
+        log.info("getShardId(dataSourceMap.size(), value) {}", getShardId(dataSourceMap.size(), value));
+        switch (getShardId(dataSourceMap.size(), value)) {
             case 1:
                 dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A);
                 break;
@@ -40,16 +42,18 @@ public class ShardingService {
             default:
                 throw new RuntimeException("Unknown ShardId");
         }
+        log.info("Current Context is: {}", dataSourceContextHolder.getContext());
     }
 
     public int getShardId(int shards, int value) {
+        int v = Math.abs(value);
         int l = (int) Math.pow(2, logBase2(shards));
-        if (value % l <= shards - l && value % l > 0) {
-            return value % (l * 2);
-        } if (value % l == 0) {
+        if (v % l <= shards - l && v % l > 0) {
+            return v % (l * 2);
+        } if (v % l == 0) {
             return l;
         }
-        return value % l;
+        return v % l;
     }
 
     private int logBase2(int n) {

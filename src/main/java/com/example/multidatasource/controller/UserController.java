@@ -26,7 +26,7 @@ public class UserController {
     private final ShardingService shardingService;
     private final RestTemplate restTemplate;
 
-    //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins"}' http://localhost:8080/api/user
+    //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "Frodo Baggins"}' http://localhost:8080/api/user
     @RequestMapping(value = "/user", method = RequestMethod.POST)
     public ResponseEntity<User> newUser(@RequestBody User user) {
         shardingService.setDataSourceContextByValue(user.getName().hashCode());
@@ -40,7 +40,7 @@ public class UserController {
                 );
     }
 
-    //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins"}' http://localhost:8080/api/userext
+    //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "Frodo Baggins"}' http://localhost:8080/api/userext
     @RequestMapping(value = "/userext", method = RequestMethod.POST)
     public ResponseEntity<User> newUserExt(@RequestBody User user) {
         ResponseEntity<User> user_CLIENT_A = restTemplate.postForEntity("http://localhost:8080/api/v1/user?shardId=1", user, User.class);
