@@ -1,11 +1,13 @@
 package com.example.multidatasource.datasource;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
 @Component
+@Slf4j
 public class DataSourceRouter extends AbstractRoutingDataSource {
     private final DataSourceContextHolder dataSourceContextHolder;
 

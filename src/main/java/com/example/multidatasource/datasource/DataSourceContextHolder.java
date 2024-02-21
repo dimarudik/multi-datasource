@@ -7,9 +7,10 @@ import org.springframework.util.Assert;
 public class DataSourceContextHolder {
     private static ThreadLocal<DataSourceContext> CONTEXT = new ThreadLocal<>();
 
-    public void setContext(DataSourceContext dataSourceContext) {
+    public AutoCloseable setContext(DataSourceContext dataSourceContext) {
         Assert.notNull(dataSourceContext, "clientDatabase cannot be null");
         CONTEXT.set(dataSourceContext);
+        return () -> CONTEXT.remove();
     }
 
     public DataSourceContext getContext() {

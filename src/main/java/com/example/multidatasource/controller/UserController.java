@@ -1,7 +1,5 @@
 package com.example.multidatasource.controller;
 
-import com.example.multidatasource.datasource.DataSourceContextHolder;
-import com.example.multidatasource.datasource.DataSourceMap;
 import com.example.multidatasource.model.User;
 import com.example.multidatasource.service.UserService;
 import com.example.multidatasource.sharding.ShardingService;
@@ -12,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -24,12 +21,10 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final ShardingService shardingService;
-    private final RestTemplate restTemplate;
 
-    //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "Frodo Baggins"}' http://localhost:8080/api/user
+    //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' http://localhost:8080/api/user
     @RequestMapping(value = "/user", method = RequestMethod.POST)
-    public ResponseEntity<User> newUser(@RequestBody User user) {
-        shardingService.setDataSourceContextByValue(user.getName().hashCode());
+    public ResponseEntity<User> newUser(@RequestBody User user) throws Exception {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userService
@@ -40,11 +35,17 @@ public class UserController {
                 );
     }
 
-    //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "Frodo Baggins"}' http://localhost:8080/api/userext
-    @RequestMapping(value = "/userext", method = RequestMethod.POST)
-    public ResponseEntity<User> newUserExt(@RequestBody User user) {
-        ResponseEntity<User> user_CLIENT_A = restTemplate.postForEntity("http://localhost:8080/api/v1/user?shardId=1", user, User.class);
-        return restTemplate.postForEntity("http://localhost:8080/api/v1/user?shardId=2", user, User.class);
+    //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' http://localhost:8080/api/multiuser
+    @RequestMapping(value = "/multiuser", method = RequestMethod.POST)
+    public ResponseEntity<User> multiNewUser(@RequestBody User user) throws Exception {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(userService
+                        .multiSaveUser(user)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST, "User can not be saved"
+                        ))
+                );
     }
 
     //  curl -X GET -i -H "Content-Type:application/json" http://localhost:8080/api/user/1

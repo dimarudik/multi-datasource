@@ -1,5 +1,7 @@
 package com.example.multidatasource.service;
 
+import com.example.multidatasource.datasource.DataSourceContext;
+import com.example.multidatasource.datasource.DataSourceContextHolder;
 import com.example.multidatasource.model.User;
 import com.example.multidatasource.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -18,13 +20,23 @@ import java.util.Optional;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+    private final DataSourceContextHolder dataSourceContextHolder;
 
     public List<User> findAllUsers() {
         return userRepository.findAll();
     }
 
-    public Optional<User> saveUser(User user) {
+    public Optional<User> saveUser(User user) throws Exception {
         return Optional.of(userRepository.save(user));
+    }
+
+    public Optional<User> multiSaveUser(User user) throws Exception {
+        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A)){
+            userRepository.save(user);
+        }
+        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_B)){
+            return Optional.of(userRepository.save(user));
+        }
     }
 
     public Optional<User> findUserById(Long id) {
