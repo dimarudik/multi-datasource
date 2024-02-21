@@ -24,7 +24,7 @@ public class UserController {
 
     //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' http://localhost:8080/api/user
     @RequestMapping(value = "/user", method = RequestMethod.POST)
-    public ResponseEntity<User> newUser(@RequestBody User user) throws Exception {
+    public ResponseEntity<User> newUser(@RequestBody User user) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userService

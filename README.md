@@ -40,20 +40,14 @@ docker run --name postgres \
 java -jar ./build/libs/multi-datasource-0.0.1-SNAPSHOT.jar
 ```
 
-Insert with automatic lookup of the shard by `hashcode` of `name`:
+Just Insert to default datasource:
 ```
-curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins"}' \
+curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' \ 
     http://localhost:8080/api/user
 ```
 
-Dual Insert into two databases:
+Dual Insert into two data sources:
 ```
-curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins"}' \
-    http://localhost:8080/api/userext
-```
-
-Pagination by `shardId` :
-```
-curl -X GET -i -H "Content-Type:application/json" \
-    http://localhost:8080/api/users?shardId=1
+curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' \ 
+    http://localhost:8080/api/multiuser
 ```

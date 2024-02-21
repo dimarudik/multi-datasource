@@ -26,7 +26,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Optional<User> saveUser(User user) throws Exception {
+    public Optional<User> saveUser(User user) {
         return Optional.of(userRepository.save(user));
     }
 
