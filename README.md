@@ -16,6 +16,10 @@ docker run --name oracle \
 ```
 
 ```
+sqlplus test/test@(description=(address=(host=localhost)(protocol=tcp)(port=1521))(connect_data=(service_name=xepdb1)))
+```
+
+```
 docker run --name postgres \
         -e POSTGRES_USER=postgres \
         -e POSTGRES_PASSWORD=postgres \
@@ -45,7 +49,7 @@ Just Insert to default datasource:
 curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' http://localhost:8080/api/user
 ```
 
-Dual Insert into two data sources:
+Dual Insert into two data sources ([Outbox pattern](https://medium.com/@egorponomarev/outbox-pattern-in-spring-boot-8e8cf116f044)):
 ```
 curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' http://localhost:8080/api/multiuser
 ```

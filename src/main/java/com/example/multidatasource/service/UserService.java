@@ -2,7 +2,9 @@ package com.example.multidatasource.service;
 
 import com.example.multidatasource.datasource.DataSourceContext;
 import com.example.multidatasource.datasource.DataSourceContextHolder;
+import com.example.multidatasource.model.Outbox;
 import com.example.multidatasource.model.User;
+import com.example.multidatasource.repository.OutboxRepository;
 import com.example.multidatasource.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +23,9 @@ import java.util.Optional;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+    private final OutboxRepository outboxRepository;
     private final DataSourceContextHolder dataSourceContextHolder;
+    private final TransactionTemplate transactionTemplate;
 
     public List<User> findAllUsers() {
         return userRepository.findAll();
@@ -31,12 +36,23 @@ public class UserService {
     }
 
     public Optional<User> multiSaveUser(User user) throws Exception {
+        Optional<User> optionalUser;
+        Outbox outbox = new Outbox();
         try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A)){
-            userRepository.save(user);
+            outbox.setMessage(user.toString());
+            optionalUser = transactionTemplate.execute(transactionStatus -> {
+                Optional<User> o = Optional.of(userRepository.save(user));
+                outboxRepository.save(outbox);
+                return o;
+            });
         }
         try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_B)){
-            return Optional.of(userRepository.save(user));
+            userRepository.save(user);
         }
+        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A)){
+            outboxRepository.delete(outbox);
+        }
+        return optionalUser;
     }
 
     public Optional<User> findUserById(Long id) {
