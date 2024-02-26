@@ -1,15 +1,15 @@
 package com.example.multidatasource.config;
 
+import com.zaxxer.hikari.HikariConfig;
 import lombok.Data;
-import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
-@ConfigurationProperties(prefix="clientb.datasource")
+@ConfigurationProperties(prefix = "hikari")
 @Data
-public class ClientBConfig {
-    private String url;
-    private String password;
-    private String username;
+public class HikariProperties {
+    private Map<String, HikariConfig> config;
 }

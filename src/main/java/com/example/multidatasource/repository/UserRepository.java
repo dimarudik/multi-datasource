@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    List<User> findByGender(Boolean aBoolean);
+    List<User> findByGender(Boolean gender);
 }

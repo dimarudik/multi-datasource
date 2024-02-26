@@ -1,6 +1,5 @@
 package com.example.multidatasource.service;
 
-import com.example.multidatasource.datasource.DataSourceContext;
 import com.example.multidatasource.datasource.DataSourceContextHolder;
 import com.example.multidatasource.model.Outbox;
 import com.example.multidatasource.model.User;
@@ -38,7 +37,7 @@ public class UserService {
     public Optional<User> multiSaveUser(User user) throws Exception {
         Optional<User> optionalUser;
         Outbox outbox = new Outbox();
-        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A)){
+        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource1")){
             optionalUser = transactionTemplate.execute(transactionStatus -> {
                 Optional<User> o = Optional.of(userRepository.save(user));
                 outbox.setMessage(user.toString());
@@ -46,17 +45,17 @@ public class UserService {
                 return o;
             });
         }
-        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_B)){
+        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource2")){
             userRepository.save(user);
         }
-        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A)){
+        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource1")){
             outboxRepository.delete(outbox);
         }
         return optionalUser;
     }
 
     public Optional<User> findUserById(Long id) throws Exception {
-        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A)){
+        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource1")){
             return userRepository.findById(id);
         }
     }
@@ -70,10 +69,10 @@ public class UserService {
 
     public List<User> findByGender(Boolean gender) throws Exception{
         List<User> users;
-        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_B)) {
+        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource2")) {
             users = userRepository.findByGender(gender);
         }
-        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A)) {
+        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource1")) {
             users = userRepository.findByGender(gender);
         }
         return users;

@@ -16,7 +16,7 @@ public class DataSourceRouter extends AbstractRoutingDataSource {
         this.dataSourceContextHolder = dataSourceContextHolder;
         Map<Object, Object> map = dataSourceMap.initMap();
         this.setTargetDataSources(map);
-        this.setDefaultTargetDataSource(map.get(DataSourceContext.CLIENT_A));
+        this.setDefaultTargetDataSource(map.get("datasource1"));
     }
 
     @Override

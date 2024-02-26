@@ -1,6 +1,5 @@
 package com.example.multidatasource.sharding;
 
-import com.example.multidatasource.datasource.DataSourceContext;
 import com.example.multidatasource.datasource.DataSourceContextHolder;
 import com.example.multidatasource.datasource.DataSourceMap;
 import lombok.AllArgsConstructor;
@@ -17,32 +16,14 @@ public class ShardingService {
     public void setDataSourceContextByShardId(int shardId) {
         switch (shardId) {
             case 1:
-                dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A);
+                dataSourceContextHolder.setContext("datasource1");
                 break;
             case 2:
-                dataSourceContextHolder.setContext(DataSourceContext.CLIENT_B);
+                dataSourceContextHolder.setContext("datasource2");
                 break;
             default:
                 throw new RuntimeException("Unknown ShardId");
         }
-        log.info("Current Context is: {}", dataSourceContextHolder.getContext());
-    }
-
-    public void setDataSourceContextByValue(int value) {
-//        log.info("DataSourceMap size : {}", dataSourceMap.size());
-        log.info("value {}", value);
-        log.info("getShardId(dataSourceMap.size(), value) {}", getShardId(dataSourceMap.size(), value));
-        switch (getShardId(dataSourceMap.size(), value)) {
-            case 1:
-                dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A);
-                break;
-            case 2:
-                dataSourceContextHolder.setContext(DataSourceContext.CLIENT_B);
-                break;
-            default:
-                throw new RuntimeException("Unknown ShardId");
-        }
-        log.info("Current Context is: {}", dataSourceContextHolder.getContext());
     }
 
     public int getShardId(int shards, int value) {
