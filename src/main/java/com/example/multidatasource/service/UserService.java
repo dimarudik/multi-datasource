@@ -39,9 +39,9 @@ public class UserService {
         Optional<User> optionalUser;
         Outbox outbox = new Outbox();
         try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A)){
-            outbox.setMessage(user.toString());
             optionalUser = transactionTemplate.execute(transactionStatus -> {
                 Optional<User> o = Optional.of(userRepository.save(user));
+                outbox.setMessage(user.toString());
                 outboxRepository.save(outbox);
                 return o;
             });
@@ -55,8 +55,10 @@ public class UserService {
         return optionalUser;
     }
 
-    public Optional<User> findUserById(Long id) {
-        return userRepository.findById(id);
+    public Optional<User> findUserById(Long id) throws Exception {
+        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A)){
+            return userRepository.findById(id);
+        }
     }
 
     public Page<User> findAll(int pageNo, int pageSize, String sortBy, String sortDirection) {
@@ -64,5 +66,16 @@ public class UserService {
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
         return userRepository.findAll(pageable);
+    }
+
+    public List<User> findByGender(Boolean gender) throws Exception{
+        List<User> users;
+        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_B)) {
+            users = userRepository.findByGender(gender);
+        }
+        try (AutoCloseable a = dataSourceContextHolder.setContext(DataSourceContext.CLIENT_A)) {
+            users = userRepository.findByGender(gender);
+        }
+        return users;
     }
 }

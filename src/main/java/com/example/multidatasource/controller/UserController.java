@@ -54,7 +54,7 @@ public class UserController {
     //  curl -X GET -i -H "Content-Type:application/json" http://localhost:8080/api/user/1
     @RequestMapping(value = "/user/{id}", method = RequestMethod.GET)
     public ResponseEntity<User> findUserById(@PathVariable("id") Long id,
-                                             @RequestHeader(value = "id", required = false) Long optionalHeader) {
+                                             @RequestHeader(value = "id", required = false) Long optionalHeader) throws Exception {
         if (optionalHeader != null) {
             System.out.println(optionalHeader);
         }
@@ -85,5 +85,12 @@ public class UserController {
         shardingService.setDataSourceContextByShardId(shardId);
         Page<User> result = userService.findAll(pageNo, pageSize, sortBy, sortDirection);
         return ResponseEntity.ok(result.getContent());
+    }
+
+    //  curl -X GET -i -H "Content-Type:application/json" http://localhost:8080/api/usersbygender?gender=true
+    @RequestMapping(value = "/usersbygender", method = RequestMethod.GET)
+    public ResponseEntity<List<User>> findByGender(
+            @RequestParam(defaultValue = "true") Boolean gender) throws Exception {
+        return ResponseEntity.ok(userService.findByGender(gender));
     }
 }
