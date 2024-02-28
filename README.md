@@ -49,7 +49,7 @@ Just Insert to default datasource:
 curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' http://localhost:8080/api/user
 ```
 
-Dual Insert into two data sources ([Outbox pattern](https://medium.com/@egorponomarev/outbox-pattern-in-spring-boot-8e8cf116f044)):
+Dual Insert into two data sources ([Outbox pattern](https://medium.com/@egorponomarev/outbox-pattern-in-spring-boot-8e8cf116f044) & [Optimistic Locking](https://aurigait.com/blog/locking-in-spring-boot/)):
 ```
 curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' http://localhost:8080/api/multiuser
 ```

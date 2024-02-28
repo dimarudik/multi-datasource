@@ -38,7 +38,7 @@ public class UserController {
     //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' http://localhost:8080/api/multiuser
     // sql test/test@(description=(address=(host=localhost)(protocol=tcp)(port=1521))(connect_data=(service_name=xepdb1)))
     @RequestMapping(value = "/multiuser", method = RequestMethod.POST)
-    public ResponseEntity<User> multiNewUser(@RequestBody User user) throws Exception {
+    public ResponseEntity<User> multiNewUser(@RequestBody User user) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userService

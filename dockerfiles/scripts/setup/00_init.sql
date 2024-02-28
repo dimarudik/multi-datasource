@@ -11,8 +11,8 @@ create table test.users_tab (
     primary key (id)
 );
 create table test.outbox_tab (
-    id number(19,0) generated as identity,
+    id raw(16) not null,
     message varchar2(255),
-    create_at timestamp(6) with time zone,
+    version number(19,0),
     primary key (id)
 );

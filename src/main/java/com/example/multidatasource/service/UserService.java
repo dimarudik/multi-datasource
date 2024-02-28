@@ -1,6 +1,8 @@
 package com.example.multidatasource.service;
 
 import com.example.multidatasource.datasource.DataSourceContextHolder;
+import com.example.multidatasource.datasource.DataSourceMap;
+import com.example.multidatasource.datasource.DataSourceRouter;
 import com.example.multidatasource.model.Outbox;
 import com.example.multidatasource.model.User;
 import com.example.multidatasource.repository.OutboxRepository;
@@ -25,6 +27,8 @@ public class UserService {
     private final OutboxRepository outboxRepository;
     private final DataSourceContextHolder dataSourceContextHolder;
     private final TransactionTemplate transactionTemplate;
+    private final DataSourceRouter dataSourceRouter;
+    private final DataSourceMap dataSourceMap;
 
     public List<User> findAllUsers() {
         return userRepository.findAll();
@@ -34,28 +38,48 @@ public class UserService {
         return Optional.of(userRepository.save(user));
     }
 
-    public Optional<User> multiSaveUser(User user) throws Exception {
-        Optional<User> optionalUser;
+    public Optional<User> multiSaveUser(User user) {
+        Optional<User> optionalUser = Optional.empty();
         Outbox outbox = new Outbox();
-        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource1")){
-            optionalUser = transactionTemplate.execute(transactionStatus -> {
-                Optional<User> o = Optional.of(userRepository.save(user));
-                outbox.setMessage(user.toString());
-                outboxRepository.save(outbox);
-                return o;
-            });
+
+        if (dataSourceMap.getMap().containsKey(dataSourceRouter.getSourceValue())) {
+            try (AutoCloseable a = dataSourceContextHolder.setContext(dataSourceRouter.getSourceValue())) {
+                optionalUser = transactionTemplate.execute(transactionStatus -> {
+                    Optional<User> o = Optional.of(userRepository.save(user));
+                    outbox.setMessage(user.toString());
+                    outboxRepository.save(outbox);
+                    return o;
+                });
+            } catch (Exception e) {
+                log.error("", e);
+                throw new RuntimeException(e);
+            }
         }
-        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource2")){
-            userRepository.save(user);
+
+        if (dataSourceMap.getMap().containsKey(dataSourceRouter.getTargetValue())) {
+            try (AutoCloseable a = dataSourceContextHolder.setContext(dataSourceRouter.getTargetValue())) {
+                userRepository.save(user);
+            } catch (Exception e) {
+                log.error("", e);
+                return optionalUser;
+            }
+        } else {
+            return optionalUser;
         }
-        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource1")){
-            outboxRepository.delete(outbox);
+
+        if (dataSourceMap.getMap().containsKey(dataSourceRouter.getSourceValue())) {
+            try (AutoCloseable a = dataSourceContextHolder.setContext(dataSourceRouter.getSourceValue())) {
+                outboxRepository.delete(outbox);
+            } catch (Exception e) {
+                log.error("", e);
+                throw new RuntimeException(e);
+            }
         }
         return optionalUser;
     }
 
     public Optional<User> findUserById(Long id) throws Exception {
-        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource1")){
+        try (AutoCloseable a = dataSourceContextHolder.setContext(dataSourceRouter.getSourceValue())){
             return userRepository.findById(id);
         }
     }
@@ -69,10 +93,10 @@ public class UserService {
 
     public List<User> findByGender(Boolean gender) throws Exception{
         List<User> users;
-        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource2")) {
+        try (AutoCloseable a = dataSourceContextHolder.setContext(dataSourceRouter.getTargetValue())) {
             users = userRepository.findByGender(gender);
         }
-        try (AutoCloseable a = dataSourceContextHolder.setContext("datasource1")) {
+        try (AutoCloseable a = dataSourceContextHolder.setContext(dataSourceRouter.getSourceValue())) {
             users = userRepository.findByGender(gender);
         }
         return users;
