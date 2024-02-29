@@ -25,7 +25,7 @@ public class DataSourceMap {
                 HikariDataSource hikariDataSource = new HikariDataSource(v);
                 map.put(k, hikariDataSource);
             } catch (HikariPool.PoolInitializationException e) {
-                if (k.equals("datasource1")) {
+                if (k.equals(hikariProperties.getSource())) {
                     throw new RuntimeException();
                 }
                 log.error("Pool {} cannot be initialized", k);
@@ -36,5 +36,9 @@ public class DataSourceMap {
 
     public int size() {
         return map.size();
+    }
+
+    public Boolean hasDataSource(String key) {
+        return map.containsKey(key);
     }
 }

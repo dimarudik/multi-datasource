@@ -39,4 +39,10 @@ public class HikariConfigController {
     public ResponseEntity<Integer> getPoolCount() {
         return ResponseEntity.ok(dataSourceMap.size());
     }
+
+    //  curl -X GET -i -H "Content-Type:application/json" http://localhost:8080/hikari/init
+    @RequestMapping(value = "/init", method = RequestMethod.GET)
+    public ResponseEntity<Map<Object, Object>> init() {
+        return ResponseEntity.ok(dataSourceMap.initMap());
+    }
 }

@@ -24,6 +24,7 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.17.0-rc1'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly group: 'com.oracle.database.jdbc', name: 'ojdbc10', version: '19.21.0.0'
 	runtimeOnly group: 'com.oracle.database.nls', name: 'orai18n', version: '19.21.0.0'

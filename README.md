@@ -40,6 +40,10 @@ docker run --name postgres \
 ```
 
 ```
+psql postgresql://test:test@localhost/postgres
+```
+
+```
 ./gradlew clean build --no-daemon -x test
 java -jar ./build/libs/multi-datasource-0.0.1-SNAPSHOT.jar
 ```

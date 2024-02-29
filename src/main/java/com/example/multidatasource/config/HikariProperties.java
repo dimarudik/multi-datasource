@@ -11,5 +11,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "hikari")
 @Data
 public class HikariProperties {
+    private String source;
+    private String target;
     private Map<String, HikariConfig> config;
 }
