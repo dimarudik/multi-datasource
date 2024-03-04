@@ -5,6 +5,8 @@ import com.example.multidatasource.datasource.DataSourceContextHolder;
 import com.example.multidatasource.datasource.DataSourceMap;
 import com.example.multidatasource.model.Outbox;
 import com.example.multidatasource.model.User;
+import com.example.multidatasource.model.UserDto;
+import com.example.multidatasource.model.mapper.UserMapper;
 import com.example.multidatasource.repository.OutboxRepository;
 import com.example.multidatasource.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,6 +36,7 @@ public class UserService {
     private final TransactionTemplate transactionTemplate;
     private final DataSourceMap dataSourceMap;
     private final HikariProperties hikariProperties;
+    private final UserMapper userMapper;
 
     public List<User> findAllUsers() {
         return userRepository.findAll();
@@ -42,11 +46,18 @@ public class UserService {
         return Optional.of(userRepository.save(user));
     }
 
-    public Optional<User> multiSaveUser(User user) {
+    public Optional<User> updateUser(UserDto userDto) {
+        User user = userRepository.findById(userDto.getId()).orElseThrow();
+        userMapper.updateUserFromDto(userDto, user);
+        return Optional.of(userRepository.save(user));
+    }
+
+    public Optional<User> multiSaveUser(User user, RequestMethod method) {
         Outbox outbox = new Outbox();
+        outbox.setMethod(method);
 
         Optional<User> optionalUser = transactionTemplate.execute(transactionStatus -> {
-            Optional<User> o = Optional.of(userRepository.save(user));
+            Optional<User> o = saveUser(user);
             try {
                 ObjectMapper objectMapper = JsonMapper.builder()
                         .findAndAddModules()
@@ -61,8 +72,38 @@ public class UserService {
 
         if (dataSourceMap.hasDataSource(hikariProperties.getTarget())) {
             try (AutoCloseable a = dataSourceContextHolder.setContext(hikariProperties.getTarget())) {
-                assert Objects.requireNonNull(optionalUser).isPresent();
-                userRepository.save(optionalUser.get());
+                saveUser(user);
+            } catch (Exception e) {
+                log.error("", e);
+                return optionalUser;
+            }
+            outboxRepository.delete(outbox);
+        }
+
+        return optionalUser;
+    }
+
+    public Optional<User> multiUpdateUser(UserDto userDto, RequestMethod method) {
+        Outbox outbox = new Outbox();
+        outbox.setMethod(method);
+
+        Optional<User> optionalUser = transactionTemplate.execute(transactionStatus -> {
+            Optional<User> o = updateUser(userDto);
+            try {
+                ObjectMapper objectMapper = JsonMapper.builder()
+                        .findAndAddModules()
+                        .build();
+                outbox.setMessage(objectMapper.writeValueAsString(o.get()));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            outboxRepository.save(outbox);
+            return o;
+        });
+
+        if (dataSourceMap.hasDataSource(hikariProperties.getTarget())) {
+            try (AutoCloseable a = dataSourceContextHolder.setContext(hikariProperties.getTarget())) {
+                updateUser(userDto);
             } catch (Exception e) {
                 log.error("", e);
                 return optionalUser;

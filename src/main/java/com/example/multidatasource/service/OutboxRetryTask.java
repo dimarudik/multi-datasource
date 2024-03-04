@@ -26,17 +26,21 @@ public record OutboxRetryTask(OutboxRepository outboxRepository,
                               DataSourceContextHolder dataSourceContextHolder,
                               DataSourceMap dataSourceMap,
                               HikariProperties hikariProperties) {
-    @Scheduled(fixedDelayString = "5000")
+//    @Scheduled(fixedDelayString = "5000")
     public void retry() throws JsonProcessingException {
         if (dataSourceMap.hasDataSource(hikariProperties.getTarget())) {
             try {
+
                 Outbox outbox = outboxRepository.findFirstByOrderByCreateAt();
+
                 if (outbox != null) {
                     ObjectMapper objectMapper = JsonMapper.builder()
                             .findAndAddModules()
                             .build();
                     User user = objectMapper.readValue(outbox.getMessage(), User.class);
+
                     saveUserToTarget(user);
+
                     transactionTemplate.executeWithoutResult(transactionStatus -> {
                         try {
                             Thread.sleep(4000);
@@ -45,6 +49,7 @@ public record OutboxRetryTask(OutboxRepository outboxRepository,
                         }
                         outboxRepository.delete(outbox);
                     });
+
                 }
             } catch (ObjectOptimisticLockingFailureException e) {
                 log.error("Message has already removed.");

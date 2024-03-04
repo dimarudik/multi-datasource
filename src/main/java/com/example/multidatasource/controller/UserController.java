@@ -1,6 +1,7 @@
 package com.example.multidatasource.controller;
 
 import com.example.multidatasource.model.User;
+import com.example.multidatasource.model.UserDto;
 import com.example.multidatasource.service.UserService;
 import com.example.multidatasource.sharding.ShardingService;
 import jakarta.persistence.EntityNotFoundException;
@@ -8,11 +9,13 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api")
@@ -36,13 +39,38 @@ public class UserController {
     }
 
     //  curl -X POST -i -H "Content-Type:application/json" -d '{"name": "FrodoBaggins", "gender": true}' http://localhost:8080/api/multiuser
-    // sql test/test@(description=(address=(host=localhost)(protocol=tcp)(port=1521))(connect_data=(service_name=xepdb1)))
     @RequestMapping(value = "/multiuser", method = RequestMethod.POST)
-    public ResponseEntity<User> multiNewUser(@RequestBody User user) {
+    public ResponseEntity<User> multiNewUser(@RequestBody User user, RequestEntity<String> request) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userService
-                        .multiSaveUser(user)
+                        .multiSaveUser(user, RequestMethod.valueOf(Objects.requireNonNull(request.getMethod()).toString()))
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST, "User can not be saved"
+                        ))
+                );
+    }
+
+    //  curl -X PATCH -i -H "Content-Type:application/json" -d '{"id":1,  "gender": false}' http://localhost:8080/api/user
+    @RequestMapping(value = "/user", method = RequestMethod.PATCH)
+    public ResponseEntity<User> updateUser(@RequestBody UserDto userDto) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(userService
+                        .updateUser(userDto)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST, "User can not be saved"
+                        ))
+                );
+    }
+
+    //  curl -X PATCH -i -H "Content-Type:application/json" -d '{"id":1,  "gender": false}' http://localhost:8080/api/multiuser
+    @RequestMapping(value = "/multiuser", method = RequestMethod.PATCH)
+    public ResponseEntity<User> multiUpdateUser(@RequestBody UserDto userDto, RequestEntity<String> request) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(userService
+                        .multiUpdateUser(userDto, RequestMethod.valueOf(Objects.requireNonNull(request.getMethod()).toString()))
                         .orElseThrow(() -> new ResponseStatusException(
                                 HttpStatus.BAD_REQUEST, "User can not be saved"
                         ))
@@ -54,7 +82,7 @@ public class UserController {
     public ResponseEntity<User> findUserById(@PathVariable("id") Long id,
                                              @RequestHeader(value = "id", required = false) Long optionalHeader) throws Exception {
         if (optionalHeader != null) {
-            System.out.println(optionalHeader);
+            log.info("{}", optionalHeader);
         }
         return ResponseEntity.ok(
                 userService
