@@ -44,6 +44,26 @@ psql postgresql://test:test@localhost/postgres
 ```
 
 ```
+alter system set session_preload_libraries = auto_explain;
+load 'auto_explain';
+alter system set auto_explain.log_min_duration = 3000;
+alter system set auto_explain.log_analyze = true;
+alter system set auto_explain.log_buffers = true;
+alter system set auto_explain.log_timing = true;
+select pg_reload_conf();
+```
+
+```
+alter system reset auto_explain.log_analyze;
+alter system reset auto_explain.log_buffers;
+alter system reset auto_explain.log_timing;
+alter system reset auto_explain.log_min_duration;
+alter system reset session_preload_libraries;
+select pg_reload_conf();
+```
+
+
+```
 ./gradlew clean build --no-daemon -x test
 java -jar ./build/libs/multi-datasource-0.0.1-SNAPSHOT.jar
 ```

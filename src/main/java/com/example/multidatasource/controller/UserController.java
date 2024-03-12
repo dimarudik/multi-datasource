@@ -119,4 +119,14 @@ public class UserController {
             @RequestParam(defaultValue = "true") Boolean gender) throws Exception {
         return ResponseEntity.ok(userService.findByGender(gender));
     }
+
+    //  curl -X GET -i -H "Content-Type:application/json" http://localhost:8080/api/customuser/1
+    @RequestMapping(value = "/customuser/{id}", method = RequestMethod.GET)
+    public ResponseEntity<User> findCustomUserById(@PathVariable("id") Long id) throws Exception {
+        return ResponseEntity.ok(
+                userService
+                        .findCustomUserById(id)
+                        .orElseThrow(EntityNotFoundException::new)
+        );
+    }
 }

@@ -12,6 +12,7 @@ import com.example.multidatasource.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -19,11 +20,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -114,10 +115,8 @@ public class UserService {
         return optionalUser;
     }
 
-    public Optional<User> findUserById(Long id) throws Exception {
-        try (AutoCloseable a = dataSourceContextHolder.setContext(hikariProperties.getSource())){
-            return userRepository.findById(id);
-        }
+    public Optional<User> findUserById(Long id) {
+        return userRepository.findById(id);
     }
 
     public Page<User> findAll(int pageNo, int pageSize, String sortBy, String sortDirection) {
@@ -127,7 +126,11 @@ public class UserService {
         return userRepository.findAll(pageable);
     }
 
-    public List<User> findByGender(Boolean gender) throws Exception{
+    public List<User> findByGender(Boolean gender) {
         return userRepository.findByGender(gender);
+    }
+
+    public Optional<User> findCustomUserById(Long id) throws Exception {
+        return userRepository.findCustomUserById(id);
     }
 }
