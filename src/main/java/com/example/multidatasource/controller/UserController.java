@@ -129,4 +129,14 @@ public class UserController {
                         .orElseThrow(EntityNotFoundException::new)
         );
     }
+
+    //  curl -X GET -i -H "Content-Type:application/json" http://localhost:8080/api/timeout
+    @RequestMapping(value = "/timeout", method = RequestMethod.GET)
+    public ResponseEntity<User> findUserWithTimeOut() throws Exception {
+        return ResponseEntity.ok(
+                userService
+                        .findUserWithTimeOut()
+                        .orElseThrow(EntityNotFoundException::new)
+        );
+    }
 }

@@ -14,4 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("select user from User user where id = ?1")
     Optional<User> findCustomUserById(Long id);
+
+    @Query(value = "select id, create_at, name, update_at, gender, pg_sleep(5) from users_tab where id = 1", nativeQuery = true)
+    Optional<User> findUserWithTimeOut();
 }
